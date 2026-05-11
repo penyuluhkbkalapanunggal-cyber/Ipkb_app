@@ -1,0 +1,201 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<h2 class="text-2xl font-bold text-blue-600 mb-4">💳 Data Pembayaran</h2>
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+    <a href="/tambah_pembayaran"
+       class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 inline-block w-fit shadow">
+       ➕ Tambah Pembayaran
+    </a>
+
+    <div class="flex flex-col md:flex-row gap-2">
+        <input type="text" id="searchInput" placeholder="Cari nama..."
+               class="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+
+        <select id="bulanFilter" class="border px-3 py-2 rounded-lg">
+            <option value="">Semua Bulan</option>
+            <option>Jan</option><option>Feb</option><option>Mar</option>
+            <option>Apr</option><option>Mei</option><option>Jun</option>
+            <option>Jul</option><option>Agu</option><option>Sep</option>
+            <option>Okt</option><option>Nov</option><option>Des</option>
+        </select>
+
+        <input type="number" id="tahunFilter" placeholder="Tahun"
+               class="border px-3 py-2 rounded-lg w-full md:w-28">
+    </div>
+</div>
+
+<div class="bg-white p-4 rounded-2xl shadow border border-gray-100 overflow-x-auto">
+
+<table class="w-full text-sm border border-gray-200 rounded-xl overflow-hidden">
+<thead>
+<tr class="bg-gradient-to-r from-blue-50 to-sky-50 text-blue-700 text-sm">
+    <th class="p-3 border-b">No</th>
+    <th class="p-3 border-b">Nama</th>
+    <th class="p-3 border-b">Bulan</th>
+    <th class="p-3 border-b">Tahun</th>
+    <th class="p-3 border-b">Jumlah</th>
+    <th class="p-3 border-b">Tanggal</th>
+    <th class="p-3 border-b">Bukti</th>
+    <th class="p-3 border-b text-center">Aksi</th>
+</tr>
+</thead>
+
+<tbody>
+{% for d in data %}
+<tr class="payment-row hover:bg-blue-50 transition">
+    <td class="p-3 border-b nomor text-center"></td>
+    <td class="p-3 border-b font-semibold nama">{{ d[1] }}</td>
+
+    <td class="p-3 border-b bulan">
+        <span class="px-2 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-semibold">
+            {{ d[2] }}
+        </span>
+    </td>
+
+    <td class="p-3 border-b tahun text-center">{{ d[3] }}</td>
+
+    <td class="p-3 border-b text-green-600 font-semibold">
+        Rp {{ "{:,}".format(d[4]) }}
+    </td>
+
+    <td class="p-3 border-b text-gray-600">{{ d[5] }}</td>
+
+    <td class="p-3 border-b text-center">
+        {% if d[6] %}
+        <img src="/static/uploads/{{ d[6] }}"
+             class="w-10 h-10 object-cover rounded-lg border cursor-pointer hover:scale-110 transition"
+             onclick="showImage(this.src)">
+        {% else %}
+        <span class="text-gray-400">-</span>
+        {% endif %}
+    </td>
+
+    <td class="p-3 border-b text-center">
+        <div class="flex justify-center gap-3">
+
+            <!-- EDIT -->
+            <a href="/edit_pembayaran/{{ d[0] }}"
+               class="text-blue-500 hover:text-blue-700 hover:scale-125 transition"
+               title="Edit">
+                ✏️
+            </a>
+
+            <!-- HAPUS -->
+            <a href="#"
+               onclick="hapusData({{ d[0] }})"
+               class="text-red-500 hover:text-red-700 hover:scale-125 transition"
+               title="Hapus">
+                🗑️
+            </a>
+
+        </div>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div id="emptyMessage" class="hidden text-center py-6 text-gray-500">
+    Data tidak ditemukan.
+</div>
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
+    <p id="pageInfo" class="text-sm text-gray-500"></p>
+
+    <div class="flex flex-wrap gap-2">
+        <button id="prevBtn"
+                class="px-3 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-40">‹</button>
+        <div id="pageNumbers" class="flex flex-wrap gap-1"></div>
+        <button id="nextBtn"
+                class="px-3 py-2 rounded-lg border bg-white hover:bg-gray-100 disabled:opacity-40">›</button>
+    </div>
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <img id="modalImg" class="max-w-lg max-h-[90vh] rounded-xl shadow-lg">
+</div>
+
+<script>
+const rows = Array.from(document.querySelectorAll('.payment-row'));
+const searchInput = document.getElementById('searchInput');
+const bulanFilter = document.getElementById('bulanFilter');
+const tahunFilter = document.getElementById('tahunFilter');
+
+let currentPage = 1;
+const rowsPerPage = 5;
+
+function getFilteredRows() {
+    const keyword = searchInput.value.toLowerCase();
+    const bulan = bulanFilter.value.toLowerCase();
+    const tahun = tahunFilter.value;
+
+    return rows.filter(row => {
+        return row.querySelector('.nama').innerText.toLowerCase().includes(keyword)
+            && (bulan === '' || row.querySelector('.bulan').innerText.toLowerCase().includes(bulan))
+            && (tahun === '' || row.querySelector('.tahun').innerText.includes(tahun));
+    });
+}
+
+function renderTable() {
+    const filteredRows = getFilteredRows();
+    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+
+    rows.forEach(r => r.style.display = 'none');
+
+    if (filteredRows.length === 0) {
+        document.getElementById('emptyMessage').classList.remove('hidden');
+        return;
+    }
+
+    document.getElementById('emptyMessage').classList.add('hidden');
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    filteredRows.slice(start, end).forEach((row, i) => {
+        row.style.display = '';
+        row.querySelector('.nomor').innerText = start + i + 1;
+    });
+}
+
+function showImage(src){
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').classList.add('flex');
+    document.getElementById('modalImg').src = src;
+}
+
+document.getElementById('modal').onclick = function(){
+    this.classList.add('hidden');
+    this.classList.remove('flex');
+};
+
+function hapusData(id) {
+    Swal.fire({
+        title: 'Yakin hapus?',
+        text: "Data tidak bisa dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "/hapus_pembayaran/" + id;
+        }
+    })
+}
+
+searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
+bulanFilter.addEventListener('change', () => { currentPage = 1; renderTable(); });
+tahunFilter.addEventListener('input', () => { currentPage = 1; renderTable(); });
+
+renderTable();
+</script>
+
+{% endblock %}

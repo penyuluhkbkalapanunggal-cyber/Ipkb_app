@@ -1,0 +1,705 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
+<h2 class="text-2xl font-bold text-blue-700 mb-4">
+  <i class="fa-solid fa-file-signature mr-2"></i>SKP / Laporan Kegiatan
+</h2>
+<div class="bg-white p-5 rounded-2xl shadow mb-6">
+
+<form method="POST" enctype="multipart/form-data" class="space-y-5">
+
+    <!-- DATA WAJIB -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+        <input type="number"
+                name="tahun"
+                value="{{ current_year }}"
+                class="border p-2 rounded-xl w-full"
+                required>
+
+       <input type="text"
+                name="bulan"
+                value="{{ current_month }}"
+                class="border p-2 rounded-xl w-full"
+                required>
+
+        <input type="date"
+               name="tanggal"
+               required
+               class="border p-2 rounded-xl w-full">
+
+    </div>
+
+    <!-- PILIH DATA KEGIATAN -->
+    <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl">
+
+        <label class="font-semibold block mb-2 text-blue-700">
+            Ambil Data dari Kegiatan PKB
+        </label>
+
+        <select id="pilihKegiatan"
+                class="border p-3 rounded-xl w-full bg-white">
+
+            <option value="">-- Pilih Kegiatan --</option>
+
+            {% for k in kegiatan_list %}
+
+            <option
+                value="{{ k[0] }}"
+                data-judul="{{ k[1] }}"
+                data-deskripsi="{{ k[2] }}"
+                data-sasaran="{{ k[3] }}"
+                data-tempat="{{ k[4] }}"
+                data-hasil="{{ k[5] }}"
+                data-tanggal="{{ k[6].strftime('%Y-%m-%d') if k[6] else '' }}"
+                data-jam-mulai="{{ k[6].strftime('%H:%M') if k[6] else '' }}"
+                data-jam-selesai="{{ k[7].strftime('%H:%M') if k[7] else '' }}"
+            >
+                {{ k[1] }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+    <!-- FORM -->
+    <div class="border rounded-2xl p-4 bg-slate-50 space-y-4">
+
+        <h3 class="text-center font-bold text-lg">
+            LAPORAN KEGIATAN
+        </h3>
+
+        <!-- JENIS -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                A. Jenis Kegiatan
+            </label>
+
+            <input type="text"
+                   id="jenis_kegiatan"
+                   name="jenis_kegiatan"
+                   class="border p-2 rounded-xl w-full">
+
+        </div>
+
+        <!-- WAKTU -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                B. Waktu Pelaksanaan
+            </label>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+
+                <input type="text"
+                       id="hari"
+                       name="hari"
+                       placeholder="Hari"
+                       class="border p-2 rounded-xl w-full">
+
+                <input type="date"
+                       id="tanggal_pelaksanaan"
+                       name="tanggal_pelaksanaan"
+                       class="border p-2 rounded-xl w-full">
+
+                <input type="time"
+                       id="jam_mulai"
+                       name="jam_mulai"
+                       class="border p-2 rounded-xl w-full">
+
+                <input type="time"
+                       id="jam_selesai"
+                       name="jam_selesai"
+                       class="border p-2 rounded-xl w-full">
+
+            </div>
+
+        </div>
+
+        <!-- SASARAN -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                C. Sasaran
+            </label>
+
+            <input type="text"
+                   id="sasaran"
+                   name="sasaran"
+                   class="border p-2 rounded-xl w-full">
+
+        </div>
+
+        <!-- TEMPAT -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                D. Tempat Kegiatan
+            </label>
+
+            <input type="text"
+                   id="lokasi_kegiatan"
+                   name="lokasi_kegiatan"
+                   class="border p-2 rounded-xl w-full">
+
+        </div>
+
+        <!-- HASIL -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                E. Hasil Kegiatan
+            </label>
+
+            <textarea id="uraian"
+                      name="uraian"
+                      class="border p-2 rounded-xl w-full"
+                      required></textarea>
+
+        </div>
+
+        <!-- GAMBAR -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                Upload Dokumentasi
+            </label>
+
+            <input type="file"
+                   id="gambarInput"
+                   name="gambar"
+                   accept="image/*"
+                   class="border p-2 rounded-xl w-full bg-white">
+
+        </div>
+
+        <!-- TTD -->
+        <div>
+
+            <label class="font-semibold block mb-1">
+                Upload Tanda Tangan Digital
+            </label>
+
+            <input type="file"
+                   id="ttdInput"
+                   name="tanda_tangan"
+                   accept="image/*"
+                   class="border p-2 rounded-xl w-full bg-white">
+
+        </div>
+
+    </div>
+
+    <!-- BUTTON -->
+    <div class="flex justify-end">
+
+        <button type="submit"
+                class="btn btn-blue justify-center">
+
+            <i class="fa-solid fa-floppy-disk"></i>
+            Simpan
+
+        </button>
+
+    </div>
+
+</form>
+</div>
+<div class="bg-white p-4 rounded-2xl shadow mb-4">
+  <input id="searchBox" onkeyup="filterTable()" placeholder="Cari data laporan..." class="border p-2 rounded-xl w-full md:w-80">
+</div>
+
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+
+  <!-- HEADER -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 border-b bg-slate-50">
+
+    <!-- FILTER -->
+    <div class="flex flex-wrap items-center gap-2">
+
+      <!-- SHOW -->
+      <select
+  <select id="perPage"
+        class="h-8 rounded-lg border border-slate-300 text-xs px-2 bg-white">
+
+    <option value="5">5</option>
+    <option value="10">10</option>
+    <option value="20">20</option>
+    <option value="50">50</option>
+    <option value="all">All</option>
+
+</select>
+
+      <!-- FILTER KATEGORI -->
+      <select
+        class="h-8 rounded-lg border border-slate-300 text-xs px-2 bg-white">
+
+        <option value="">Semua Kategori</option>
+
+        <option value="SKP">SKP</option>
+
+      </select>
+
+    <span class="text-xs font-semibold text-slate-600">
+      Total <span id="totalData">{{ data|length }}</span> Data
+    </span>
+
+    </div>
+
+    <!-- SEARCH -->
+    <div class="relative w-full md:w-72">
+
+      <input
+        id="searchBox"
+        onkeyup="filterTable()"
+        placeholder="Cari uraian kegiatan..."
+        class="w-full h-9 rounded-xl border border-slate-300 pl-9 pr-3 text-sm focus:ring-2 focus:ring-sky-200 outline-none">
+
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-xs text-slate-400"></i>
+
+    </div>
+
+  </div>
+
+ <!-- TABLE -->
+<div class="overflow-x-auto">
+
+  <table id="dataTable"
+         class="w-full min-w-[900px] text-sm border border-slate-300 border-collapse">
+
+    <thead class="bg-gradient-to-r from-blue-700 to-sky-500 text-white text-[11px] uppercase">
+
+      <tr>
+
+        <th class="px-3 py-3 text-center whitespace-nowrap border border-slate-300">
+          NO
+        </th>
+
+        <th class="px-3 py-3 text-center whitespace-nowrap border border-slate-300">
+          Kategori Kegiatan
+        </th>
+
+        <th class="px-3 py-3 text-center whitespace-nowrap border border-slate-300">
+          Uraian
+        </th>
+
+        <th class="px-3 py-3 text-center whitespace-nowrap border border-slate-300">
+          Target
+        </th>
+
+      </tr>
+
+    </thead>
+
+    <tbody class="text-[12px]">
+
+      {% if data %}
+      {% for row in data %}
+
+      <tr class="hover:bg-sky-50/40 transition duration-200">
+
+        <!-- NO -->
+        <td class="px-3 py-2 text-center font-semibold text-slate-700 border border-slate-300">
+
+          {{ loop.index }}
+
+        </td>
+
+        <!-- KATEGORI -->
+        <td class="px-3 py-2 text-center border border-slate-300">
+
+          <span class="px-2 py-1 rounded-full bg-sky-100 text-sky-700 text-[10px] font-semibold">
+
+            {{ row[3] or 'SKP' }}
+
+          </span>
+
+        </td>
+
+        <!-- URAIAN -->
+        <td class="px-3 py-2 text-slate-700 border border-slate-300">
+
+          {{ row[1] }}
+
+        </td>
+
+        <!-- TARGET -->
+        <td class="px-3 py-2 text-center whitespace-nowrap font-medium text-slate-700 border border-slate-300">
+
+          {{ row[2] or '-' }}
+
+        </td>
+
+      </tr>
+
+      {% endfor %}
+      {% else %}
+
+      <tr>
+
+        <td colspan="4"
+            class="text-center py-10 text-slate-400 border border-slate-300">
+
+          Belum ada data SKP.
+
+        </td>
+
+      </tr>
+
+      {% endif %}
+
+    </tbody>
+
+  </table>
+
+</div>
+
+  <!-- PAGINATION -->
+  <div class="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+
+  <button id="prevPage"
+          class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 border-r">
+
+    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+
+  </button>
+
+  <div id="pageNumbers" class="flex"></div>
+
+  <button id="nextPage"
+          class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 border-l">
+
+    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+
+  </button>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+    // ==============================
+    // TINYMCE
+    // ==============================
+    tinymce.init({
+        selector:'#uraian',
+        height:300,
+        menubar:false,
+        plugins:'lists link table image code preview',
+        toolbar:'undo redo | bold italic underline | bullist numlist | alignleft aligncenter alignright | table image | preview code',
+        branding:false,
+        setup:function(editor){
+            editor.on('change keyup', function(){
+                tinymce.triggerSave();
+            });
+        },
+        file_picker_types:'image',
+        file_picker_callback:function(callback){
+            let input=document.createElement('input');
+            input.type='file';
+            input.accept='image/*';
+
+            input.onchange=function(){
+                let file=this.files[0];
+                let reader=new FileReader();
+
+                reader.onload=function(e){
+                    callback(e.target.result,{alt:file.name});
+                };
+
+                reader.readAsDataURL(file);
+            };
+
+            input.click();
+        }
+    });
+
+    // ==============================
+    // PREVIEW GAMBAR
+    // ==============================
+    document.getElementById('gambarInput').addEventListener('change', function(e){
+
+        let file = e.target.files[0];
+
+        if(file){
+
+            let reader = new FileReader();
+
+            reader.onload = function(event){
+
+                document.getElementById('previewGambar').src = event.target.result;
+
+                document.getElementById('previewBox').classList.remove('hidden');
+
+            }
+
+            reader.readAsDataURL(file);
+
+        }
+
+    });
+
+    // ==============================
+    // PREVIEW TTD
+    // ==============================
+    document.getElementById('ttdInput').addEventListener('change', function(e){
+
+        let file = e.target.files[0];
+
+        if(file){
+
+            let reader = new FileReader();
+
+            reader.onload = function(event){
+
+                document.getElementById('previewTtd').src = event.target.result;
+
+                document.getElementById('previewTtdBox').classList.remove('hidden');
+
+            }
+
+            reader.readAsDataURL(file);
+
+        }
+
+    });
+
+    // ==============================
+    // TABLE PAGINATION
+    // ==============================
+    const table = document.getElementById("dataTable");
+
+    const tbody = table.querySelector("tbody");
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+
+    const searchBox = document.getElementById("searchBox");
+
+    const perPageSelect = document.getElementById("perPage");
+
+    const pageNumbers = document.getElementById("pageNumbers");
+
+    const prevBtn = document.getElementById("prevPage");
+
+    const nextBtn = document.getElementById("nextPage");
+
+    const totalData = document.getElementById("totalData");
+
+    let currentPage = 1;
+
+    let perPage = 5;
+
+    let filteredRows = [...rows];
+
+    // ==============================
+    // RENDER TABLE
+    // ==============================
+    function renderTable(){
+
+        tbody.innerHTML = "";
+
+        let start = (currentPage - 1) * perPage;
+
+        let end = perPage === 'all'
+            ? filteredRows.length
+            : start + parseInt(perPage);
+
+        let paginatedRows = perPage === 'all'
+            ? filteredRows
+            : filteredRows.slice(start, end);
+
+        if(paginatedRows.length === 0){
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4"
+                        class="text-center py-10 text-slate-400 border border-slate-300">
+                        Tidak ada data.
+                    </td>
+                </tr>
+            `;
+
+        } else {
+
+            paginatedRows.forEach(row => {
+
+                tbody.appendChild(row);
+
+            });
+
+        }
+
+        renderPagination();
+
+        totalData.innerText = filteredRows.length;
+
+    }
+
+    // ==============================
+    // PAGINATION BUTTON
+    // ==============================
+    function renderPagination(){
+
+        pageNumbers.innerHTML = "";
+
+        if(perPage === 'all') return;
+
+        let totalPages = Math.ceil(filteredRows.length / perPage);
+
+        for(let i=1; i<=totalPages; i++){
+
+            let btn = document.createElement("button");
+
+            btn.innerText = i;
+
+            btn.className =
+                `w-8 h-8 text-xs border-r
+                ${i === currentPage
+                    ? 'bg-sky-500 text-white'
+                    : 'bg-white hover:bg-slate-100 text-slate-700'}`;
+
+            btn.addEventListener("click", function(){
+
+                currentPage = i;
+
+                renderTable();
+
+            });
+
+            pageNumbers.appendChild(btn);
+
+        }
+
+    }
+
+    // ==============================
+    // SEARCH
+    // ==============================
+    searchBox.addEventListener("keyup", function(){
+
+        let q = this.value.toLowerCase();
+
+        filteredRows = rows.filter(row =>
+            row.innerText.toLowerCase().includes(q)
+        );
+
+        currentPage = 1;
+
+        renderTable();
+
+    });
+
+    // ==============================
+    // SHOW DATA
+    // ==============================
+    perPageSelect.addEventListener("change", function(){
+
+        perPage = this.value === 'all'
+            ? 'all'
+            : parseInt(this.value);
+
+        currentPage = 1;
+
+        renderTable();
+
+    });
+
+    // ==============================
+    // PREV
+    // ==============================
+    prevBtn.addEventListener("click", function(){
+
+        if(currentPage > 1){
+
+            currentPage--;
+
+            renderTable();
+
+        }
+
+    });
+
+    // ==============================
+    // NEXT
+    // ==============================
+    nextBtn.addEventListener("click", function(){
+
+        if(perPage === 'all') return;
+
+        let totalPages = Math.ceil(filteredRows.length / perPage);
+
+        if(currentPage < totalPages){
+
+            currentPage++;
+
+            renderTable();
+
+        }
+
+    });
+
+    renderTable();
+
+});
+// =====================================
+// AUTO ISI DATA KEGIATAN
+// =====================================
+document.getElementById('pilihKegiatan').addEventListener('change', function(){
+
+    let selected = this.options[this.selectedIndex];
+
+    let tanggal = selected.dataset.tanggal || '';
+
+    let namaHari = '';
+
+    if(tanggal){
+
+        let hariList = [
+            'Minggu',
+            'Senin',
+            'Selasa',
+            'Rabu',
+            'Kamis',
+            'Jumat',
+            'Sabtu'
+        ];
+
+        let tglObj = new Date(tanggal);
+
+        namaHari = hariList[tglObj.getDay()];
+    }
+
+    document.getElementById('jenis_kegiatan').value =
+        selected.dataset.judul || '';
+
+    document.getElementById('hari').value =
+        namaHari;
+
+    document.getElementById('tanggal_pelaksanaan').value =
+        tanggal;
+
+    document.getElementById('jam_mulai').value =
+        selected.dataset.jamMulai || '';
+
+    document.getElementById('jam_selesai').value =
+        selected.dataset.jamSelesai || '';
+
+    document.getElementById('sasaran').value =
+        selected.dataset.sasaran || '';
+
+    document.getElementById('lokasi_kegiatan').value =
+        selected.dataset.tempat || '';
+
+    tinymce.get('uraian').setContent(
+        selected.dataset.hasil || selected.dataset.deskripsi || ''
+    );
+
+});
+</script>
+
+{% endblock %}

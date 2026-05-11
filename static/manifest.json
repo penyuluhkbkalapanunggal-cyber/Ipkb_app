@@ -1,0 +1,20 @@
+{
+  "name": "IPKB App",
+  "short_name": "IPKB",
+  "description": "Sistem Iuran, SKP, Renja, Laporan dan Pengingat IPKB",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f9",
+  "theme_color": "#2563eb",
+  "icons": [
+    {"src": "/static/img/logo-title.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "/static/img/logo-title.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Iuran", "url":"/iuran", "icons":[{"src":"/static/img/logo-title.png","sizes":"192x192"}]},
+    {"name":"Rencana Kerja", "url":"/rencana_kerja", "icons":[{"src":"/static/img/logo-title.png","sizes":"192x192"}]},
+    {"name":"Laporan Kegiatan", "url":"/laporan_kegiatan", "icons":[{"src":"/static/img/logo-title.png","sizes":"192x192"}]}
+  ]
+}

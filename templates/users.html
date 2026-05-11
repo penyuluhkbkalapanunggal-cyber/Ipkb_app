@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-2xl font-bold text-blue-700"><i class="fa-solid fa-users-gear mr-2"></i>Manajemen User</h2>
+  <a href="/tambah_user" class="btn btn-blue" title="Tambah User"><i class="fa-solid fa-user-plus"></i><span class="hidden sm:inline">Tambah User</span></a>
+</div>
+<div class="bg-white p-4 rounded-2xl shadow overflow-x-auto">
+<table class="w-full min-w-[780px] text-xs md:text-sm">
+<thead class="table-head text-center"><tr><th class="px-2 py-2">Foto</th><th class="px-2 py-2">Nama</th><th class="px-2 py-2">NIP</th><th class="px-2 py-2">No HP</th><th class="px-2 py-2">Role</th><th class="px-2 py-2">Aksi</th></tr></thead>
+<tbody>
+{% for u in users %}
+<tr class="text-center border-b hover:bg-slate-50 h-10">
+  <td class="px-2 py-1">{% if u[5] %}<img src="/static/uploads/{{ u[5] }}" class="w-9 h-9 rounded-full mx-auto object-cover">{% else %}<span class="text-gray-400">-</span>{% endif %}</td>
+  <td class="px-2 py-1 font-semibold">{{ u[4] }}</td>
+  <td class="px-2 py-1">{{ u[1] }}</td>
+  <td class="px-2 py-1">{{ u[6] or '-' }}</td>
+  <td class="px-2 py-1"><span class="px-2 py-1 rounded-full text-[11px] font-semibold {% if u[3]=='admin' %}bg-green-100 text-green-700{% elif u[3]=='bendahara' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %}">{{ u[3] }}</span></td>
+  <td class="px-2 py-1">
+    <div class="flex items-center justify-center gap-3">
+      <a href="/edit_user/{{ u[0] }}" class="text-amber-500 hover:text-amber-700 text-lg" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+      <button onclick="confirmDelete('/hapus_user/{{ u[0] }}','User dan data terkait akan dihapus.')" class="text-red-600 hover:text-red-800 text-lg" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  </td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% endblock %}

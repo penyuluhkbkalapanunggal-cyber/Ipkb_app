@@ -1,0 +1,353 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="space-y-4">
+
+  <div>
+    <h1 class="text-xl font-bold text-slate-800">Arsip Digital</h1>
+    <p class="text-xs text-slate-500">Upload dan kelola arsip digital</p>
+  </div>
+
+  <!-- UPLOAD -->
+  <form method="POST" enctype="multipart/form-data"
+        class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 flex flex-wrap items-center gap-2">
+
+    <select name="kategori_id" required class="h-8 rounded-lg border border-slate-300 text-xs px-2">
+      <option value="">Kategori</option>
+      {% for k in kategori_list %}
+      <option value="{{ k[0] }}">{{ k[1] }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="text" name="nama_file" required placeholder="Nama file"
+           class="h-8 rounded-lg border border-slate-300 text-xs px-3">
+
+    <input type="file" name="file_upload" required
+           class="h-8 rounded-lg border border-slate-300 text-xs px-2 py-1">
+
+    <div class="relative group">
+      <button type="submit"
+              class="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600">
+        <i class="fa-solid fa-upload text-xs"></i>
+      </button>
+      <div class="absolute left-1/2 -translate-x-1/2 top-10 opacity-0 group-hover:opacity-100 pointer-events-none z-50">
+        <div class="bg-slate-900 text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap">Upload File</div>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- FILTER -->
+  <form method="GET" action="/arsip_digital"
+        class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 flex flex-wrap items-center gap-2">
+
+    <select name="per_page" onchange="this.form.submit()"
+            class="h-8 rounded-lg border border-slate-300 text-xs px-2">
+      <option value="5" {% if per_page_raw == '5' %}selected{% endif %}>5</option>
+      <option value="10" {% if per_page_raw == '10' %}selected{% endif %}>10</option>
+      <option value="all" {% if per_page_raw == 'all' %}selected{% endif %}>All</option>
+    </select>
+
+    <span class="text-xs font-semibold text-slate-700">Total {{ total_rows }}</span>
+
+    <input type="text" name="q" value="{{ q }}" placeholder="Cari nama file..."
+           class="h-8 rounded-lg border border-slate-300 text-xs px-3">
+
+    <select name="kategori" class="h-8 rounded-lg border border-slate-300 text-xs px-2">
+      <option value="">Semua Kategori</option>
+      {% for k in kategori_list %}
+      <option value="{{ k[0] }}" {% if kategori == k[0]|string %}selected{% endif %}>
+        {{ k[1] }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <div class="relative group">
+      <button type="submit"
+              class="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600">
+        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+      </button>
+      <div class="absolute left-1/2 -translate-x-1/2 top-10 opacity-0 group-hover:opacity-100 pointer-events-none z-50">
+        <div class="bg-slate-900 text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap">Cari Data</div>
+      </div>
+    </div>
+
+    <div class="relative group">
+      <a href="/arsip_digital"
+         class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <i class="fa-solid fa-rotate-left text-xs"></i>
+      </a>
+      <div class="absolute left-1/2 -translate-x-1/2 top-10 opacity-0 group-hover:opacity-100 pointer-events-none z-50">
+        <div class="bg-slate-900 text-white text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap">Reset Filter</div>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- TABLE -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+  <div class="overflow-x-auto">
+
+    <table class="w-full text-xs border border-slate-300 border-collapse min-w-[900px]">
+
+      <thead class="bg-gradient-to-r from-sky-500 to-cyan-500 text-white">
+
+        <tr>
+
+          <th class="px-3 py-2 text-center border border-slate-300">No</th>
+
+          <th class="px-3 py-2 text-center border border-slate-300">
+            Kategori
+          </th>
+
+          <th class="px-3 py-2 text-center border border-slate-300">
+            Nama File
+          </th>
+
+          <th class="px-3 py-2 text-center border border-slate-300">
+            File
+          </th>
+
+          <th class="px-3 py-2 text-center border border-slate-300">
+            Tanggal
+          </th>
+
+          {% if session.role == 'admin' %}
+          <th class="px-3 py-2 text-center border border-slate-300">
+            User
+          </th>
+          {% endif %}
+
+          <th class="px-3 py-2 text-center border border-slate-300">
+            Aksi
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        {% if data %}
+        {% for row in data %}
+
+        <tr class="hover:bg-sky-50/40 transition">
+
+          <!-- NO -->
+          <td class="px-3 py-2 text-center border border-slate-300">
+            {{ offset + loop.index }}
+          </td>
+
+          <!-- KATEGORI -->
+          <td class="px-3 py-2 text-center border border-slate-300">
+
+            <span class="px-2 py-1 rounded-full bg-sky-100 text-sky-700 text-[10px] font-semibold">
+
+              {{ row[4] or '-' }}
+
+            </span>
+
+          </td>
+
+          <!-- NAMA FILE -->
+          <td class="px-3 py-2 font-semibold border border-slate-300 whitespace-nowrap">
+
+            {{ row[1] }}
+
+          </td>
+
+          <!-- FILE -->
+          <td class="px-3 py-2 border border-slate-300 whitespace-nowrap">
+
+            {{ row[2] }}
+
+          </td>
+
+          <!-- TANGGAL -->
+          <td class="px-3 py-2 text-center border border-slate-300 whitespace-nowrap">
+
+            {{ row[3] }}
+
+          </td>
+
+          {% if session.role == 'admin' %}
+
+          <!-- USER -->
+          <td class="px-3 py-2 text-center border border-slate-300 whitespace-nowrap">
+
+            {{ row[5] or '-' }}
+
+          </td>
+
+          {% endif %}
+
+          <!-- AKSI -->
+          <td class="px-3 py-2 text-center border border-slate-300">
+
+            <div class="flex items-center justify-center gap-1">
+
+              <!-- LIHAT -->
+              <a href="/static/uploads/{{ row[2] }}"
+                 target="_blank"
+                 class="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition">
+
+                <i class="fa-solid fa-eye text-xs"></i>
+
+              </a>
+
+              <!-- DOWNLOAD -->
+              <a href="/static/uploads/{{ row[2] }}"
+                 download
+                 class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-200 transition">
+
+                <i class="fa-solid fa-download text-xs"></i>
+
+              </a>
+
+              <!-- EDIT -->
+              <button type="button"
+                      onclick="document.getElementById('modalEdit{{ row[0] }}').classList.remove('hidden')"
+                      class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center hover:bg-amber-200 transition">
+
+                <i class="fa-solid fa-pen text-xs"></i>
+
+              </button>
+
+              <!-- HAPUS -->
+              <button type="button"
+                      onclick="hapusArsip('/hapus_arsip/{{ row[0] }}')"
+                      class="w-7 h-7 rounded-lg bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition">
+
+                <i class="fa-solid fa-trash text-xs"></i>
+
+              </button>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+        {% else %}
+
+        <tr>
+
+          <td colspan="7"
+              class="text-center py-8 text-slate-400 border border-slate-300">
+
+            Belum ada arsip digital.
+
+          </td>
+
+        </tr>
+
+        {% endif %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+  <!-- PAGINATION -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
+
+  <div class="flex items-center gap-3">
+
+    <select onchange="window.location.href=this.value"
+            class="h-8 rounded border border-slate-300 text-xs px-2 bg-white">
+
+      <option value="/arsip_digital?page=1&per_page=5&q={{ q }}&kategori={{ kategori }}"
+        {% if per_page_raw == '5' %}selected{% endif %}>5</option>
+
+      <option value="/arsip_digital?page=1&per_page=10&q={{ q }}&kategori={{ kategori }}"
+        {% if per_page_raw == '10' %}selected{% endif %}>10</option>
+
+      <option value="/arsip_digital?page=1&per_page=20&q={{ q }}&kategori={{ kategori }}"
+        {% if per_page_raw == '20' %}selected{% endif %}>20</option>
+
+      <option value="/arsip_digital?page=1&per_page=50&q={{ q }}&kategori={{ kategori }}"
+        {% if per_page_raw == '50' %}selected{% endif %}>50</option>
+
+      <option value="/arsip_digital?page=1&per_page=all&q={{ q }}&kategori={{ kategori }}"
+        {% if per_page_raw == 'all' %}selected{% endif %}>All</option>
+
+    </select>
+
+    <span class="text-xs font-semibold text-slate-700">
+      Total {{ total_rows }}
+    </span>
+
+  </div>
+
+  {% if total_pages > 1 %}
+  <div class="flex items-center text-[11px] border border-slate-200 rounded overflow-hidden bg-white">
+
+    {% if page > 1 %}
+    <a href="/arsip_digital?page=1&per_page={{ per_page_raw }}&q={{ q }}&kategori={{ kategori }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50 border-r">
+      <i class="fa-solid fa-angles-left text-[10px]"></i>
+    </a>
+
+    <a href="/arsip_digital?page={{ page-1 }}&per_page={{ per_page_raw }}&q={{ q }}&kategori={{ kategori }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50 border-r">
+      <i class="fa-solid fa-chevron-left text-[10px]"></i>
+    </a>
+    {% endif %}
+
+    {% for p in pagination_pages(page, total_pages) %}
+    <a href="/arsip_digital?page={{ p }}&per_page={{ per_page_raw }}&q={{ q }}&kategori={{ kategori }}"
+       class="w-7 h-7 flex items-center justify-center border-r
+       {% if p == page %}
+         bg-sky-500 text-white font-semibold
+       {% else %}
+         bg-white text-sky-600 hover:bg-sky-50
+       {% endif %}">
+      {{ p }}
+    </a>
+    {% endfor %}
+
+    {% if page < total_pages %}
+    <a href="/arsip_digital?page={{ page+1 }}&per_page={{ per_page_raw }}&q={{ q }}&kategori={{ kategori }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50 border-r">
+      <i class="fa-solid fa-chevron-right text-[10px]"></i>
+    </a>
+
+    <a href="/arsip_digital?page={{ total_pages }}&per_page={{ per_page_raw }}&q={{ q }}&kategori={{ kategori }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50">
+      <i class="fa-solid fa-angles-right text-[10px]"></i>
+    </a>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+</div>
+
+
+<script>
+function hapusArsip(url) {
+  Swal.fire({
+    title: 'Yakin hapus?',
+    text: 'Data arsip akan dihapus permanen.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, hapus',
+    cancelButtonText: 'Batal',
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.location.href = url;
+    }
+  });
+}
+</script>
+{% endblock %}

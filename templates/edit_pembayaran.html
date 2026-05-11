@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<h2 class="text-xl font-bold text-blue-600 mb-4">✏️ Edit Pembayaran</h2>
+
+<form method="POST" class="bg-white p-4 rounded-xl shadow max-w-md">
+
+    <p class="mb-2"><b>Nama:</b> {{ data[1] }}</p>
+    <p class="mb-2"><b>Bulan:</b> {{ data[2] }} {{ data[3] }}</p>
+
+    <input type="number" name="jumlah" value="{{ data[4] }}"
+           class="border w-full px-3 py-2 rounded-lg mb-3" required>
+
+    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+        Simpan
+    </button>
+
+</form>
+
+{% endblock %}

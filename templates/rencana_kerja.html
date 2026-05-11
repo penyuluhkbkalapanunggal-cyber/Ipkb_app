@@ -1,0 +1,338 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+  <div>
+    <h2 class="text-2xl font-bold text-blue-700"><i class="fa-solid fa-calendar-days mr-2"></i>Rencana Kerja</h2>
+    <p class="text-sm text-slate-500">Kegiatan harian, tombol selesai, filter bulan, dan rekap kegiatan selesai.</p>
+  </div>
+  <div class="flex gap-2 flex-wrap">
+    <a href="/laporan_kegiatan" class="btn btn-green justify-center"><i class="fa-solid fa-clipboard-check"></i>Laporan Kegiatan</a>
+    <button onclick="requestNotifPermission()" class="btn btn-blue justify-center"><i class="fa-solid fa-bell"></i>Aktifkan Notifikasi</button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+  <div data-card-url="/rencana_kerja?mode=all" onclick="window.location.href=this.dataset.cardUrl" class="glass-card block p-4 rounded-2xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer" title="Klik untuk menampilkan seluruh kegiatan"><p class="text-xs text-slate-500">Total Kegiatan</p><h3 class="text-2xl font-extrabold text-blue-700">{{ rekap.total }}</h3><p class="text-[11px] text-blue-600 mt-1"><i class="fa-solid fa-eye mr-1"></i>Lihat semua kegiatan</p></div>
+  <div data-card-url="/rencana_kerja?status=selesai" onclick="window.location.href=this.dataset.cardUrl" class="glass-card block p-4 rounded-2xl shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer"><p class="text-xs text-slate-500">Sudah Dilaksanakan</p><h3 class="text-2xl font-extrabold text-green-700">{{ rekap.selesai }}</h3><p class="text-[11px] text-green-600 mt-1"><i class="fa-solid fa-eye mr-1"></i>Lihat selesai</p></div>
+  <div data-card-url="/rencana_kerja?status=belum" onclick="window.location.href=this.dataset.cardUrl" class="glass-card block p-4 rounded-2xl shadow border-l-4 border-amber-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer"><p class="text-xs text-slate-500">Belum Selesai</p><h3 class="text-2xl font-extrabold text-amber-700">{{ rekap.belum }}</h3><p class="text-[11px] text-amber-600 mt-1"><i class="fa-solid fa-eye mr-1"></i>Lihat belum selesai</p></div>
+</div>
+
+{% if status_filter or kegiatan_filter %}
+<div class="mb-4 rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3 text-sm">
+  <i class="fa-solid fa-filter mr-2"></i>
+  Filter aktif:
+  {% if status_filter == 'selesai' %}<b>Kegiatan selesai</b>{% elif status_filter == 'belum' %}<b>Kegiatan belum selesai</b>{% endif %}
+  {% if kegiatan_filter %}<b>{{ kegiatan_filter }}</b>{% endif %}
+  <a href="/rencana_kerja?mode=all" class="underline ml-2">Tampilkan semua</a>
+</div>
+{% endif %}
+
+<div class="bg-white p-3 rounded-2xl shadow mb-4 overflow-x-auto">
+
+<form method="POST" class="flex items-center gap-2 min-w-[1200px]">
+
+  {% if session.role == 'admin' %}
+  <select name="user_id" class="h-8 border rounded-lg px-2 text-xs" required>
+    <option value="">Anggota</option>
+    {% for u in users %}
+    <option value="{{ u[0] }}">{{ u[1] }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+
+  <select id="skpSelect" onchange="isiSKP()" class="h-8 border rounded-lg px-2 text-xs w-48" required>
+    <option value=""> SKP</option>
+    {% for s in skp_options %}
+    <option value="{{ s[2] }}">{{ s[2] }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="hidden" id="kategori_kegiatan" name="kategori_kegiatan">
+
+  <input type="text" id="kegiatan" name="kegiatan" placeholder="Uraian kegiatan"
+         class="h-8 border rounded-lg px-2 text-xs w-60" required>
+
+  <input type="text" name="sasaran" placeholder="Sasaran" class="h-8 border rounded-lg px-2 text-xs w-36">
+  <input type="text" name="hasil_kegiatan" placeholder="Hasil" class="h-8 border rounded-lg px-2 text-xs w-36">
+  <input type="text" name="tindak_lanjut" placeholder="Tindak lanjut" class="h-8 border rounded-lg px-2 text-xs w-36">
+  <input type="text" name="tempat" placeholder="Tempat" class="h-8 border rounded-lg px-2 text-xs w-36">
+
+  <input type="date" name="tanggal" value="{{ today }}" class="h-8 border rounded-lg px-2 text-xs w-36" required>
+  <input type="time" name="jam" class="h-8 border rounded-lg px-2 text-xs w-28" required>
+  <input type="time" name="jam_selesai" class="h-8 border rounded-lg px-2 text-xs w-28" required>
+
+ 
+
+  <div class="relative group">
+    <button class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700">
+      <i class="fa-solid fa-floppy-disk text-xs"></i>
+    </button>
+    <div class="absolute top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 z-50">
+      <div class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">Simpan</div>
+    </div>
+  </div>
+
+</form>
+
+
+<p class="text-xs text-slate-400 mt-3">
+  <i class="fa-solid fa-circle-info mr-1"></i>
+  Kategori diambil dari tabel SKP, uraian kegiatan bisa diisi manual dan masuk ke kolom kegiatan.
+</p>
+
+<p class="text-xs text-slate-400 mt-3">
+  <i class="fa-solid fa-circle-info mr-1"></i>
+  Notifikasi PWA akan tampil saat aplikasi sudah diinstall/diizinkan.
+  WhatsApp otomatis aktif jika token Fonnte sudah diisi.
+</p>
+
+<!-- FILTER -->
+<div class="bg-white p-3 rounded-xl shadow mb-3">
+
+<form method="GET" action="/rencana_kerja" class="flex flex-wrap items-center gap-2">
+
+  <input type="hidden" name="mode" value="all">
+
+  <input type="text"
+         name="kegiatan"
+         value="{{ kegiatan_filter }}"
+         placeholder="Kegiatan..."
+         class="h-8 border rounded-lg px-2 text-xs w-48">
+
+  <select name="bulan" class="h-8 border rounded-lg px-2 text-xs w-32">
+    <option value="">Bulan</option>
+    {% for b in range(1,13) %}
+    <option value="{{ b }}" {% if bulan_filter == b|string %}selected{% endif %}>
+      {{ bulan_nama(b) }}
+    </option>
+    {% endfor %}
+  </select>
+
+  <select name="tahun" class="h-8 border rounded-lg px-2 text-xs w-24">
+  <option value="">Tahun</option>
+
+  {% for th in range(2024, 2031) %}
+  <option value="{{ th }}"
+          {% if tahun_filter is defined and tahun_filter == th|string %}selected{% endif %}>
+    {{ th }}
+  </option>
+  {% endfor %}
+</select>
+
+  <select name="per_page" class="h-8 border rounded-lg px-2 text-xs w-20">
+    <option value="5" {% if per_page_raw == '5' %}selected{% endif %}>5</option>
+    <option value="10" {% if per_page_raw == '10' %}selected{% endif %}>10</option>
+    <option value="20" {% if per_page_raw == '20' %}selected{% endif %}>20</option>
+    <option value="50" {% if per_page_raw == '50' %}selected{% endif %}>50</option>
+    <option value="all" {% if per_page_raw == 'all' %}selected{% endif %}>All</option>
+  </select>
+
+  <div class="relative group">
+    <button type="submit"
+            class="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600">
+      <i class="fa-solid fa-magnifying-glass text-xs"></i>
+    </button>
+    <div class="absolute top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 z-50">
+      <div class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">
+        Cari
+      </div>
+    </div>
+  </div>
+
+  <div class="relative group">
+    <a href="/rencana_kerja"
+       class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+      <i class="fa-solid fa-rotate-left text-xs"></i>
+    </a>
+    <div class="absolute top-9 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 z-50">
+      <div class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">
+        Reset
+      </div>
+    </div>
+  </div>
+
+  <span class="text-xs font-semibold text-slate-600 ml-auto">
+    Total {{ total_rows }}
+  </span>
+
+</form>
+
+</div>
+
+<!-- TABLE -->
+
+<div class="bg-white rounded-xl shadow overflow-hidden w-full relative z-0">
+  <div class="overflow-x-auto w-full">
+    <table id="dataTable"
+           class="w-full min-w-[980px] text-[10px] border border-slate-500 bg-white">
+
+<thead>
+  <tr>
+    <th colspan="11" class="border border-slate-500 text-center py-1 font-bold bg-white">
+      Rencana Kerja Penyuluh KB
+    </th>
+  </tr>
+
+ <tr class="bg-slate-100">
+    <th class="border border-slate-500 px-1 py-1 text-center w-7">No</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-24">SKP</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-40">Uraian</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-24">Sasaran</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-28">Hasil</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-28">Tindak</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-20">Tempat</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-24">Tanggal</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-16">Mulai</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-16">Selesai</th>
+    <th class="border border-slate-500 px-1 py-1 text-center w-20">Aksi</th>
+</tr>
+</thead>
+
+<tbody>
+{% for d in data %}
+<tr class="hover:bg-sky-50 h-4">
+  <td class="border border-slate-500 px-1 py-2 text-center">{{ offset + loop.index }}</td>
+  <td class="border border-slate-500 px-1 py-2">{{ d[9] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2">{{ d[5] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2">{{ d[10] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2">{{ d[11] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2">{{ d[12] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2">{{ d[13] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2 text-center">{{ d[2] }}</td>
+  <td class="border border-slate-500 px-1 py-2 text-center">{{ d[3] or '-' }}</td>
+  <td class="border border-slate-500 px-1 py-2 text-center">{{ d[4] or '-' }}</td>
+
+  <td class="border border-slate-500 px-1 py-2 text-center">
+    <div class="flex items-center justify-center gap-1">
+
+      {% if d[7] not in ['Selesai','Dilaksanakan'] %}
+      <div class="relative group">
+        <a href="/selesai_rencana_kerja/{{ d[0] }}"
+           class="w-6 h-6 rounded bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-200">
+          <i class="fa-solid fa-check text-[10px]"></i>
+        </a>
+        <div class="absolute top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 z-50">
+          <div class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">Selesai</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="relative group">
+        <a href="/wa_kirim_renja/{{ d[0] }}"
+           class="w-6 h-6 rounded bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-200">
+          <i class="fa-brands fa-whatsapp text-[10px]"></i>
+        </a>
+        <div class="absolute top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 z-50">
+          <div class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">Kirim WA</div>
+        </div>
+      </div>
+
+      <div class="relative group">
+        <button type="button"
+                onclick="confirmDelete('/hapus_rencana_kerja/{{ d[0] }}','Data kegiatan akan dihapus.')"
+                class="w-6 h-6 rounded bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200">
+          <i class="fa-solid fa-trash text-[10px]"></i>
+        </button>
+        <div class="absolute top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 z-50">
+          <div class="bg-slate-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">Hapus</div>
+        </div>
+      </div>
+
+    </div>
+  </td>
+</tr>
+{% else %}
+<tr>
+  <td colspan="11" class="border border-slate-500 p-3 text-center text-slate-500">
+    Data rencana kerja belum ada.
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<!-- PAGINATION -->
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-3">
+
+  <div class="text-xs font-semibold text-slate-700">
+    Halaman {{ page }} dari {{ total_pages }}
+  </div>
+
+  {% if total_pages > 1 %}
+  <div class="flex items-center text-[11px] border border-slate-200 rounded overflow-hidden bg-white">
+
+    <a href="/rencana_kerja?page=1&per_page={{ per_page_raw }}&mode={{ mode }}&status={{ status_filter }}&kegiatan={{ kegiatan_filter }}&bulan={{ bulan_filter }}&tahun={{ tahun_filter if tahun_filter is defined else '' }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50 border-r">
+      <i class="fa-solid fa-angles-left text-[10px]"></i>
+    </a>
+
+    <a href="/rencana_kerja?page={{ page-1 if page > 1 else 1 }}&per_page={{ per_page_raw }}&mode={{ mode }}&status={{ status_filter }}&kegiatan={{ kegiatan_filter }}&bulan={{ bulan_filter }}&tahun={{ tahun_filter if tahun_filter is defined else '' }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50 border-r">
+      <i class="fa-solid fa-chevron-left text-[10px]"></i>
+    </a>
+
+    {% for p in pagination_pages(page, total_pages) %}
+    <a href="/rencana_kerja?page={{ p }}&per_page={{ per_page_raw }}&mode={{ mode }}&status={{ status_filter }}&kegiatan={{ kegiatan_filter }}&bulan={{ bulan_filter }}&tahun={{ tahun_filter if tahun_filter is defined else '' }}"
+       class="w-7 h-7 flex items-center justify-center border-r
+       {% if p == page %}
+       bg-sky-500 text-white font-bold
+       {% else %}
+       text-sky-600 hover:bg-sky-50
+       {% endif %}">
+      {{ p }}
+    </a>
+    {% endfor %}
+
+    <a href="/rencana_kerja?page={{ page+1 if page < total_pages else total_pages }}&per_page={{ per_page_raw }}&mode={{ mode }}&status={{ status_filter }}&kegiatan={{ kegiatan_filter }}&bulan={{ bulan_filter }}&tahun={{ tahun_filter if tahun_filter is defined else '' }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50 border-r">
+      <i class="fa-solid fa-chevron-right text-[10px]"></i>
+    </a>
+
+    <a href="/rencana_kerja?page={{ total_pages }}&per_page={{ per_page_raw }}&mode={{ mode }}&status={{ status_filter }}&kegiatan={{ kegiatan_filter }}&bulan={{ bulan_filter }}&tahun={{ tahun_filter if tahun_filter is defined else '' }}"
+       class="w-7 h-7 flex items-center justify-center text-sky-600 hover:bg-sky-50">
+      <i class="fa-solid fa-angles-right text-[10px]"></i>
+    </a>
+
+  </div>
+  {% endif %}
+
+</div>
+<audio id="alarmSound"><source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg"></audio>
+
+<script>
+function isiSKP() {
+  const select = document.getElementById('skpSelect');
+  document.getElementById('kategori_kegiatan').value = select.value || '';
+}
+
+function filterTable(){
+  let q = document.getElementById('searchBox')?.value.toLowerCase() || '';
+  document.querySelectorAll('#dataTable tbody tr').forEach(r=>{
+    r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function requestNotifPermission(){
+  if('Notification' in window){
+    Notification.requestPermission().then(p =>
+      Swal.fire({
+        toast:true,
+        position:'top-end',
+        icon:p==='granted'?'success':'info',
+        title:p==='granted'?'Notifikasi aktif':'Notifikasi belum diizinkan',
+        showConfirmButton:false,
+        timer:2500
+      })
+    );
+  }
+}
+</script>
+
+{% endblock %}
+

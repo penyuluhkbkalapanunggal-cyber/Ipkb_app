@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-6 text-blue-700 flex items-center gap-2">
+  <i class="fa-solid fa-chart-line"></i>
+  {% if user_dashboard %}Dashboard Anggota{% else %}Dashboard Keuangan{% endif %}
+</h2>
+
+{% if user_dashboard %}
+<div class="mb-6">
+  <h3 class="font-bold text-slate-800 mb-3">Ringkasan Iuran Saya</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <a href="/iuran?all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left" data-card-url="/iuran?all=1">
+        <p class="text-gray-500 mb-2">Total Tagihan Saya</p>
+        <h2 class="text-3xl font-extrabold text-blue-700">Rp. {{ "{:,}".format(total_tagihan).replace(',', '.') }}</h2>
+        <p class="text-sm text-blue-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat semua iuran saya</p>
+      </a>
+      <a href="/iuran?status=lunas&all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left" data-card-url="/iuran?status=lunas&all=1">
+        <p class="text-gray-500 mb-2">Total Sudah Dibayar</p>
+        <h2 class="text-3xl font-extrabold text-green-700">Rp {{ "{:,}".format(total_bayar).replace(',', '.') }}</h2>
+        <p class="text-sm text-green-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat iuran lunas</p>
+      </a>
+      <a href="/iuran?status=belum&all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left" data-card-url="/iuran?status=belum&all=1">
+        <p class="text-gray-500 mb-2">Sisa Iuran Saya</p>
+        <h2 class="text-3xl font-extrabold text-red-700">Rp {{ "{:,}".format(saldo).replace(',', '.') }}</h2>
+        <p class="text-sm text-red-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat iuran belum lunas</p>
+      </a>
+  </div>
+</div>
+
+<div class="mb-6">
+  <h3 class="font-bold text-slate-800 mb-3">Kas Keseluruhan IPKB</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <a href="/iuran?status=lunas&all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left">
+        <p class="text-gray-500 mb-2">Pemasukan Keseluruhan</p>
+        <h2 class="text-3xl font-extrabold text-green-700">Rp {{ "{:,}".format(total_masuk_all).replace(',', '.') }}</h2>
+        <p class="text-sm text-green-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat pemasukan/iuran lunas</p>
+      </a>
+      <a href="/pengeluaran?all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left">
+        <p class="text-gray-500 mb-2">Pengeluaran Keseluruhan</p>
+        <h2 class="text-3xl font-extrabold text-red-700">Rp {{ "{:,}".format(total_keluar_all).replace(',', '.') }}</h2>
+        <p class="text-sm text-red-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat pengeluaran</p>
+      </a>
+      <a href="/dashboard" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left">
+        <p class="text-gray-500 mb-2">Sisa Saldo Keseluruhan</p>
+        <h2 class="text-3xl font-extrabold text-blue-700">Rp {{ "{:,}".format(saldo_all).replace(',', '.') }}</h2>
+        <p class="text-sm text-blue-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Ringkasan saldo kas</p>
+      </a>
+  </div>
+</div>
+
+<div class="flex flex-wrap gap-2">
+  <a href="/iuran" class="btn btn-blue"><i class="fa-solid fa-wallet"></i>Lihat Detail Iuran</a>
+  <a href="/pengeluaran?all=1" class="btn bg-white border text-slate-700"><i class="fa-solid fa-money-bill-transfer"></i>Lihat Pengeluaran Kas</a>
+</div>
+
+{% else %}
+<div class="mb-3 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+  <div>
+    <h3 class="font-bold text-slate-800">Saldo Kas IPKB</h3>
+  </div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+    <a href="/iuran?status=lunas&all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left">
+      <p class="text-gray-500 mb-2">Total Pemasukan Kas</p>
+      <h2 class="text-3xl font-extrabold text-green-700">Rp {{ "{:,}".format(total_masuk).replace(',', '.') }}</h2>
+      <p class="text-sm text-green-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat pemasukan iuran</p>
+    </a>
+    <a href="/pengeluaran?all=1" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left">
+      <p class="text-gray-500 mb-2">Total Pengeluaran Kas</p>
+      <h2 class="text-3xl font-extrabold text-red-700">Rp {{ "{:,}".format(total_keluar).replace(',', '.') }}</h2>
+      <p class="text-sm text-red-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Lihat pengeluaran kas</p>
+    </a>
+    <a href="/dashboard" class="glass-card block p-6 rounded-2xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-0.5 transition cursor-pointer text-center sm:text-left">
+      <p class="text-gray-500 mb-2">Saldo Kas IPKB</p>
+      <h2 class="text-3xl font-extrabold text-blue-700">Rp {{ "{:,}".format(saldo).replace(',', '.') }}</h2>
+      <p class="text-sm text-blue-600 mt-2"><i class="fa-solid fa-eye mr-1"></i>Ringkasan saldo kas</p>
+    </a>
+</div>
+{% endif %}
+{% endblock %}

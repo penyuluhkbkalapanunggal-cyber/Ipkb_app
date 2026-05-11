@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-blue-700">
+      <i class="fa-solid fa-money-bill-transfer mr-2"></i>{% if data %}Edit{% else %}Tambah{% endif %} Pengeluaran
+    </h2>
+    <p class="text-sm text-slate-500">Isi data pengeluaran kas dengan lengkap.</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow p-6 space-y-4">
+    <div>
+      <label class="block text-sm font-semibold mb-1">Tanggal</label>
+      <input type="date" name="tanggal" required value="{{ data[1] if data else '' }}" class="w-full rounded-xl border px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Uraian</label>
+      <input type="text" name="uraian" required value="{{ data[2] if data else '' }}" placeholder="Contoh: Konsumsi rapat" class="w-full rounded-xl border px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Jumlah</label>
+      <input type="number" name="jumlah" min="1" required value="{{ data[3] if data else '' }}" placeholder="Contoh: 50000" class="w-full rounded-xl border px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Keterangan</label>
+      <textarea name="keterangan" rows="4" class="w-full rounded-xl border px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="Opsional">{{ data[4] if data else '' }}</textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Bukti Pengeluaran</label>
+      <input type="file" name="bukti" accept="image/*,.pdf" class="w-full rounded-xl border px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
+      {% if data and data[5] %}
+      <div class="mt-3 flex items-center gap-3 text-sm">
+        <span class="text-slate-500">Bukti saat ini:</span>
+        {% set ext = data[5].split('.')[-1]|lower %}
+        {% if ext in ['jpg','jpeg','png','gif','webp'] %}
+          <img src="/static/uploads/{{ data[5] }}" class="w-14 h-14 object-cover rounded-lg border">
+        {% endif %}
+        <a href="/static/uploads/{{ data[5] }}" target="_blank" class="text-blue-600 hover:underline"><i class="fa-solid fa-eye mr-1"></i>Lihat Bukti</a>
+      </div>
+      {% endif %}
+      <p class="text-xs text-slate-400 mt-1">Format: gambar atau PDF.</p>
+    </div>
+    <div class="flex flex-wrap gap-2 pt-2">
+      <button class="btn btn-blue"><i class="fa-solid fa-floppy-disk"></i>Simpan</button>
+      <a href="/pengeluaran" class="btn bg-slate-100 text-slate-700"><i class="fa-solid fa-arrow-left"></i>Kembali</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

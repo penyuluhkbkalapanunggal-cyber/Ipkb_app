@@ -1,0 +1,270 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<!-- HEADER -->
+<div class="flex items-center justify-between mb-4">
+
+  <h2 class="text-2xl font-bold text-blue-700">
+    <i class="fa-solid fa-wallet mr-2"></i>
+    Detail Iuran Anggota
+  </h2>
+
+  <a href="/iuran"
+     class="px-4 py-2 rounded-xl border border-slate-300 text-sm hover:bg-slate-50">
+
+    ← Kembali
+
+  </a>
+
+</div>
+
+<!-- DETAIL USER -->
+<div class="bg-white rounded-2xl shadow border border-slate-300 p-4 mb-4">
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+
+    <div>
+      <p class="text-slate-500 text-xs mb-1">Nama</p>
+
+      <div class="font-semibold text-slate-700">
+        {{ user[1] }}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-slate-500 text-xs mb-1">NIP</p>
+
+      <div class="font-semibold text-slate-700">
+        {{ user[2] }}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-slate-500 text-xs mb-1">Nominal / Bulan</p>
+
+      <div class="font-bold text-blue-700">
+        Rp. {{ "{:,}".format(user[3]|int).replace(',', '.') }}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TABLE -->
+<div class="bg-white rounded-2xl shadow border border-slate-300 overflow-hidden">
+
+  <div class="overflow-x-auto">
+
+    <table class="w-full min-w-[850px] text-sm border border-slate-300 border-collapse">
+
+      <!-- THEAD -->
+      <thead class="bg-blue-50 text-blue-700">
+
+        <tr>
+
+          <th class="p-3 text-center border border-slate-300">
+            No
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Bulan
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Tahun
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Tagihan
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Terbayar
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Sisa
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Bukti
+          </th>
+
+          <th class="p-3 text-center border border-slate-300">
+            Status
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <!-- TBODY -->
+      <tbody>
+
+        {% for d in data %}
+
+        {% set sisa = d[5]|int %}
+
+        <tr class="hover:bg-slate-50">
+
+          <!-- NO -->
+          <td class="p-3 text-center border border-slate-300">
+
+            {{ offset + loop.index }}
+
+          </td>
+
+          <!-- BULAN -->
+          <td class="p-3 text-center border border-slate-300">
+
+            {{ d[1] }}
+
+          </td>
+
+          <!-- TAHUN -->
+          <td class="p-3 text-center border border-slate-300">
+
+            {{ d[2] }}
+
+          </td>
+
+          <!-- TAGIHAN -->
+          <td class="p-3 text-center border border-slate-300 text-blue-700 font-bold">
+
+            Rp. {{ "{:,}".format(d[3]|int).replace(',', '.') }}
+
+          </td>
+
+          <!-- TERBAYAR -->
+          <td class="p-3 text-center border border-slate-300 text-green-700 font-bold">
+
+            Rp. {{ "{:,}".format(d[4]|int).replace(',', '.') }}
+
+          </td>
+
+          <!-- SISA -->
+          <td class="p-3 text-center border border-slate-300 font-bold
+                     {% if sisa > 0 %}
+                     text-red-600
+                     {% else %}
+                     text-green-600
+                     {% endif %}">
+
+            Rp. {{ "{:,}".format(sisa).replace(',', '.') }}
+
+          </td>
+
+          <!-- BUKTI -->
+          <td class="p-3 text-center border border-slate-300">
+
+            {% if d[6] %}
+
+            <img src="/static/uploads/{{ d[6] }}"
+                 class="w-10 h-10 rounded border border-slate-300 object-cover mx-auto">
+
+            {% else %}
+
+            -
+
+            {% endif %}
+
+          </td>
+
+          <!-- STATUS -->
+          <td class="p-3 text-center border border-slate-300">
+
+            {% if sisa <= 0 %}
+
+            <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+              Lunas
+            </span>
+
+            {% else %}
+
+            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">
+              Belum
+            </span>
+
+            {% endif %}
+
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="flex items-center justify-between p-3 border-t border-slate-300 text-xs bg-white">
+
+    <!-- LEFT -->
+    <div class="flex items-center gap-2">
+
+      <select onchange="window.location.href='?page=1&per_page='+this.value"
+              class="h-8 rounded border border-slate-300 px-2 text-xs">
+
+        <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+        <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+
+      </select>
+
+      <span class="text-slate-600 font-semibold">
+        Total {{ total_rows }}
+      </span>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="flex gap-1">
+
+      {% if page > 1 %}
+
+      <a href="?page={{ page-1 }}&per_page={{ per_page }}"
+         class="px-2 py-1 border border-slate-300 rounded">
+
+        ‹
+
+      </a>
+
+      {% endif %}
+
+      {% for p in pagination_pages(page, total_pages, 5) %}
+
+      <a href="?page={{ p }}&per_page={{ per_page }}"
+         class="px-2 py-1 rounded border border-slate-300
+         {% if p == page %}
+         bg-blue-600 text-white
+         {% endif %}">
+
+        {{ p }}
+
+      </a>
+
+      {% endfor %}
+
+      {% if page < total_pages %}
+
+      <a href="?page={{ page+1 }}&per_page={{ per_page }}"
+         class="px-2 py-1 border border-slate-300 rounded">
+
+        ›
+
+      </a>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

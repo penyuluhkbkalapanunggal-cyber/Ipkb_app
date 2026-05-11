@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Profil</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-white to-blue-50 min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-lg bg-white shadow-2xl rounded-3xl p-6">
+    <div class="text-center mb-6"><h2 class="text-2xl font-bold text-blue-700">Edit Profil</h2><p class="text-sm text-slate-400">Ubah data akun dan password</p></div>
+    <div class="flex justify-center mb-4"><div class="relative">
+        {% if user[5] %}<img id="preview" src="/static/uploads/{{ user[5] }}" class="w-28 h-28 rounded-full object-cover border-4 border-blue-500 shadow">{% else %}<div id="previewBox" class="w-28 h-28 rounded-full bg-blue-100 border-4 border-blue-500 flex items-center justify-center text-blue-700 text-3xl"><i class="fa-solid fa-user"></i></div>{% endif %}
+        <label for="foto" class="absolute bottom-0 right-0 bg-blue-600 text-white p-3 rounded-full cursor-pointer shadow hover:bg-blue-700"><i class="fa-solid fa-camera"></i></label>
+    </div></div>
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        <input type="file" name="foto" id="foto" accept="image/*" class="hidden">
+        <div><label class="text-sm text-slate-600">Nama</label><input type="text" name="nama" value="{{ user[1] }}" class="w-full p-3 mt-1 border rounded-xl focus:ring-2 focus:ring-blue-400 outline-none"></div>
+        <div><label class="text-sm text-slate-600">NIP</label><input type="text" value="{{ user[2] }}" readonly class="w-full p-3 mt-1 border rounded-xl bg-slate-100"></div>
+        <div class="border-t pt-4">
+            <h3 class="font-bold text-slate-700 mb-2"><i class="fa-solid fa-key mr-2"></i>Ganti Password</h3>
+            <p class="text-xs text-slate-400 mb-3">Kosongkan jika tidak ingin mengganti password.</p>
+            <input type="password" name="password_lama" placeholder="Password lama" class="w-full p-3 mb-2 border rounded-xl">
+            <input type="password" name="password_baru" placeholder="Password baru" class="w-full p-3 mb-2 border rounded-xl">
+            <input type="password" name="konfirmasi_password" placeholder="Konfirmasi password baru" class="w-full p-3 border rounded-xl">
+        </div>
+        <button class="w-full bg-blue-700 text-white py-3 rounded-xl hover:bg-blue-800 transition font-semibold"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Perubahan</button>
+        <a href="{{ '/iuran' if session.role in ['anggota','user'] else '/dashboard' }}" class="block text-center text-sm text-slate-500 hover:text-blue-600 mt-2">← Kembali</a>
+    </form>
+</div>
+<script>
+const foto=document.getElementById("foto"); foto.onchange=function(event){const [file]=event.target.files;if(file){let img=document.getElementById('preview');if(!img){img=document.createElement('img');img.id='preview';img.className='w-28 h-28 rounded-full object-cover border-4 border-blue-500 shadow';document.getElementById('previewBox').replaceWith(img);}img.src=URL.createObjectURL(file);}};
+{% if request.args.get('msg') %}Swal.fire({icon:'info',title:{{ request.args.get('msg')|tojson }},timer:2500,showConfirmButton:false});{% endif %}
+</script>
+</body>
+</html>

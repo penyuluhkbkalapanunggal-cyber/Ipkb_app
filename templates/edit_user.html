@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-4 text-blue-700"><i class="fa-solid fa-user-pen mr-2"></i>Edit User</h2>
+<form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-2xl shadow max-w-lg space-y-3">
+    <label class="block text-sm font-semibold">Nama</label><input type="text" name="nama" value="{{ user[4] }}" class="border p-3 w-full rounded-xl" required>
+    <label class="block text-sm font-semibold">NIP</label><input type="text" name="nip" value="{{ user[1] }}" class="border p-3 w-full rounded-xl" required>
+    <label class="block text-sm font-semibold">No HP / WhatsApp</label><input type="text" name="no_hp" value="{{ user[6] or '' }}" class="border p-3 w-full rounded-xl" placeholder="08123456789">
+    <label class="block text-sm font-semibold">Password Baru <span class="text-gray-400">(kosongkan jika tidak diganti)</span></label><input type="password" name="password" class="border p-3 w-full rounded-xl">
+    <label class="block text-sm font-semibold">Role</label><select name="role" class="border p-3 w-full rounded-xl" required><option value="anggota" {% if user[3]=='anggota' %}selected{% endif %}>Anggota</option><option value="user" {% if user[3]=='user' %}selected{% endif %}>User</option><option value="bendahara" {% if user[3]=='bendahara' %}selected{% endif %}>Bendahara</option><option value="admin" {% if user[3]=='admin' %}selected{% endif %}>Admin</option></select>
+    <label class="block text-sm font-semibold">Foto</label>{% if user[5] %}<img src="/static/uploads/{{ user[5] }}" class="w-16 h-16 rounded-full object-cover">{% endif %}<input type="file" name="foto" class="w-full text-sm">
+    <div class="flex gap-2"><button class="btn btn-blue"><i class="fa-solid fa-floppy-disk"></i>Simpan</button><a href="/users" class="btn bg-gray-200"><i class="fa-solid fa-arrow-left"></i>Kembali</a></div>
+</form>
+{% endblock %}

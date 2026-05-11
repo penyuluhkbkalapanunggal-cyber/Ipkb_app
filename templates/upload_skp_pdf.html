@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="max-w-xl bg-white rounded-2xl shadow p-5">
+
+  <h1 class="text-xl font-bold text-slate-800 mb-1">
+    Upload SKP PDF
+  </h1>
+
+  <p class="text-xs text-slate-500 mb-4">
+    Upload file PDF SKP, lalu data otomatis masuk ke tabel SKP.
+  </p>
+
+  <form method="POST"
+        enctype="multipart/form-data"
+        class="space-y-4">
+
+    <div>
+      <label class="block text-xs font-semibold text-slate-600 mb-1">
+        Tahun
+      </label>
+
+      <input type="number"
+             name="tahun"
+             value="2026"
+             required
+             class="w-full h-9 rounded-lg border border-slate-300 px-3 text-sm">
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold text-slate-600 mb-1">
+        Bulan
+      </label>
+
+      <select name="bulan"
+              required
+              class="w-full h-9 rounded-lg border border-slate-300 px-3 text-sm">
+
+        <option value="Jan">Jan</option>
+        <option value="Feb">Feb</option>
+        <option value="Mar">Mar</option>
+        <option value="Apr">Apr</option>
+        <option value="Mei">Mei</option>
+        <option value="Jun">Jun</option>
+        <option value="Jul">Jul</option>
+        <option value="Agu">Agu</option>
+        <option value="Sep">Sep</option>
+        <option value="Okt">Okt</option>
+        <option value="Nov">Nov</option>
+        <option value="Des">Des</option>
+
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-xs font-semibold text-slate-600 mb-1">
+        File PDF SKP
+      </label>
+
+      <input type="file"
+             name="file_pdf"
+             accept=".pdf"
+             required
+             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+
+    <div class="flex items-center gap-2">
+
+      <button type="submit"
+              class="px-4 h-9 rounded-lg bg-sky-500 text-white text-sm font-semibold hover:bg-sky-600">
+        <i class="fa-solid fa-upload mr-1"></i>
+        Upload
+      </button>
+
+      <a href="/skp"
+         class="px-4 h-9 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 flex items-center">
+        Kembali
+      </a>
+
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<h2 class="text-xl font-bold mb-4 text-blue-600">➕ Tambah Pembayaran</h2>
+
+{% if request.args.get('msg') %}
+<div class="bg-red-100 text-red-700 p-2 mb-3 rounded">
+    {{ request.args.get('msg') }}
+</div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data" class="space-y-3" id="formPembayaran">
+
+<!-- USER -->
+<select name="user_id" id="user_id" class="border p-2 rounded w-full" required>
+    <option value="">Pilih Anggota</option>
+    {% for u in users %}
+   <option value="{{ u[0] }}" data-nip="{{ u[2] }}">
+    {{ u[1] }}
+</option>
+    {% endfor %}
+</select>
+
+<div id="error_user" class="text-red-500 text-sm hidden">
+    ❌ Nama anggota wajib dipilih
+</div>
+
+<!-- NIP OTOMATIS DARI TABEL USER -->
+<input type="text" name="nip" id="nip" placeholder="NIP otomatis"
+       class="border p-2 rounded w-full bg-gray-100" readonly>
+
+<!-- BULAN -->
+<select name="bulan" id="bulan" class="border p-2 rounded w-full" required>
+    <option value="">Pilih Bulan</option>
+    {% for b in bulan_list %}
+    <option value="{{ b }}">{{ b }}</option>
+    {% endfor %}
+</select>
+
+<!-- TAHUN -->
+<select name="tahun" id="tahun" class="border p-2 rounded w-full" required>
+    <option value="">Pilih Tahun</option>
+    {% set tahun_now = 2026 %}
+    {% for t in range(2024, 2031) %}
+    <option value="{{ t }}" {% if t == tahun_now %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+</select>
+
+<!-- 💰 SISA TAGIHAN -->
+<div id="info_tagihan" class="text-sm text-gray-600"></div>
+
+<input type="number" name="jumlah" placeholder="Jumlah Bayar"
+       class="border p-2 rounded w-full" required>
+
+<input type="file" name="bukti" class="w-full">
+
+<button type="submit" id="submitBtn" class="bg-green-500 text-white px-4 py-2 rounded">
+    Simpan
+</button>
+
+</form>
+
+<script>
+// ⚡ AUTO PILIH BULAN SEKARANG
+const bulanSekarang = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][new Date().getMonth()];
+document.getElementById("bulan").value = bulanSekarang;
+
+// ISI NIP OTOMATIS DARI DATA USER
+document.getElementById("user_id").addEventListener("change", function(){
+    const selected = this.options[this.selectedIndex];
+    const nip = selected.getAttribute("data-nip") || "";
+
+    document.getElementById("nip").value = nip;
+    document.getElementById("error_user").classList.add("hidden");
+
+    ambilTagihan();
+});
+
+// 🔄 AMBIL SISA TAGIHAN
+document.getElementById("bulan").addEventListener("change", ambilTagihan);
+document.getElementById("tahun").addEventListener("change", ambilTagihan);
+
+function ambilTagihan(){
+    let user = document.getElementById("user_id").value;
+    let bulan = document.getElementById("bulan").value;
+    let tahun = document.getElementById("tahun").value;
+
+    if(user && bulan && tahun){
+        fetch(`/cek_tagihan?user_id=${user}&bulan=${bulan}&tahun=${tahun}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("info_tagihan").innerHTML =
+                "Sisa Tagihan: Rp " + data.sisa.toLocaleString();
+        });
+    } else {
+        document.getElementById("info_tagihan").innerHTML = "";
+    }
+}
+
+// VALIDASI SUBMIT
+document.getElementById("formPembayaran").addEventListener("submit", function(e){
+    const user = document.getElementById("user_id").value;
+
+    if(!user){
+        e.preventDefault();
+        document.getElementById("error_user").classList.remove("hidden");
+        document.getElementById("user_id").focus();
+        return false;
+    }
+
+    document.getElementById("submitBtn").disabled = true;
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page {
+    size: A4;
+    margin: 1.6cm 1.7cm 1.5cm 1.7cm;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #000;
+    line-height: 1.35;
+}
+
+.nomor {
+    text-align: right;
+    font-size: 11px;
+    margin-bottom: 12px;
+}
+
+.judul {
+    text-align: center;
+    font-weight: bold;
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 18px;
+}
+
+.row {
+    margin-bottom: 7px;
+}
+
+.label {
+    font-weight: bold;
+    display: inline-block;
+    width: 145px;
+    vertical-align: top;
+}
+
+.isi {
+    display: inline-block;
+    width: 360px;
+    vertical-align: top;
+}
+
+.hasil {
+    margin-top: 6px;
+    margin-left: 18px;
+}
+
+.hasil ol,
+.hasil ul {
+    margin-top: 4px;
+    margin-bottom: 6px;
+    padding-left: 22px;
+}
+
+.foto {
+    margin-top: 14px;
+    text-align: center;
+    page-break-inside: avoid;
+}
+
+.foto img {
+    max-width: 430px;
+    max-height: 260px;
+    border: 1px solid #444;
+    padding: 3px;
+}
+
+.ttd-area {
+    margin-top: 24px;
+    width: 100%;
+    page-break-inside: avoid;
+}
+
+.ttd-kanan {
+    width: 240px;
+    float: right;
+    text-align: center;
+}
+
+.ttd-kanan img {
+    max-width: 120px;
+    max-height: 70px;
+}
+
+.nama {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.clear {
+    clear: both;
+}
+</style>
+</head>
+
+<body>
+
+<div class="nomor">
+    Nomor: {{ data['nomor_laporan'] or '-' }}
+</div>
+
+<div class="judul">
+    LAPORAN KEGIATAN<br>
+    SKP / KEGIATAN PEGAWAI<br>
+    BULAN {{ (data['bulan'] or '')|upper }} {{ data['tahun'] or '' }}
+</div>
+
+<div class="row">
+    <span class="label">Volume Kegiatan</span>
+    <span class="isi">: {{ data['volume'] or '-' }}</span>
+</div>
+
+<div class="row">
+    <span class="label">A. Jenis Kegiatan</span>
+    <span class="isi">: {{ data['jenis_kegiatan'] or '-' }}</span>
+</div>
+
+<div class="row">
+    <span class="label">B. Waktu Pelaksanaan</span>
+    <span class="isi">
+        : {{ data['hari'] or '-' }},
+        {{ data['tanggal_pelaksanaan'] or data['tanggal'] or '-' }}<br>
+        &nbsp;&nbsp;Pukul {{ data['jam_mulai'] or '-' }} s/d {{ data['jam_selesai'] or '-' }}
+    </span>
+</div>
+
+<div class="row">
+    <span class="label">C. Sasaran</span>
+    <span class="isi">: {{ data['sasaran'] or '-' }}</span>
+</div>
+
+<div class="row">
+    <span class="label">D. Tempat Kegiatan</span>
+    <span class="isi">: {{ data['lokasi_kegiatan'] or '-' }}</span>
+</div>
+
+<div class="row">
+    <span class="label">E. Hasil Kegiatan</span>
+</div>
+
+<div class="hasil">
+    {{ data['uraian']|safe }}
+</div>
+
+{% if data['gambar'] %}
+<div class="foto">
+    <p><b>Dokumentasi Kegiatan</b></p>
+    <img src="{{ url_for('static', filename='uploads/' ~ data['gambar'], _external=True) }}">
+</div>
+{% endif %}
+
+<div class="ttd-area">
+    <div class="ttd-kanan">
+        <p>Cianjur, {{ data['tanggal'] or '-' }}</p>
+        <p>Petugas / Penyusun</p>
+
+        {% if data['tanda_tangan'] %}
+        <img src="{{ url_for('static', filename='uploads/' ~ data['tanda_tangan'], _external=True) }}">
+        {% else %}
+        <br><br><br>
+        {% endif %}
+
+        <p class="nama">{{ data['nama'] or '-' }}</p>
+    </div>
+</div>
+
+<div class="clear"></div>
+
+</body>
+</html>

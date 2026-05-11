@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo-title.png') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo-title.png') }}">
+
+<title>{{ page_title }} | IPeKB</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+.glass-card{background:rgba(255,255,255,.92);backdrop-filter:blur(10px)}
+.btn{display:inline-flex;align-items:center;gap:.45rem;border-radius:.75rem;padding:.55rem .85rem;font-weight:600;font-size:.875rem;transition:.2s}
+.btn-blue{background:#2563eb;color:white}.btn-blue:hover{background:#1d4ed8}
+.btn-green{background:#16a34a;color:white}.btn-green:hover{background:#15803d}
+.btn-red{background:#dc2626;color:white}.btn-red:hover{background:#b91c1c}
+.table-head{background:linear-gradient(90deg,#1d4ed8,#38bdf8);color:white;text-transform:uppercase;font-size:.72rem;letter-spacing:.04em}
+.android-bottom{display:none}
+.mobile-backdrop{display:none}
+
+.glass-card.cursor-pointer{cursor:pointer;touch-action:manipulation}
+.glass-card.cursor-pointer *{pointer-events:none}
+a.glass-card,.glass-card[data-card-url]{text-decoration:none}
+
+@media(max-width:768px){
+  body{padding-bottom:74px;overflow-x:hidden}
+  header{height:56px;padding:.35rem .6rem!important}
+  header .brand-title{display:none}
+  #sidebar{transform:translateX(-110%)!important;width:82vw;max-width:285px;top:56px;height:calc(100vh - 56px);z-index:60}
+  #mainContent{margin-left:0!important;width:100%!important}
+  body.mobile-open #sidebar{transform:translateX(0)!important}
+  body.mobile-open .mobile-backdrop{display:block}
+  .android-bottom{display:flex}
+  main{padding:.85rem!important;margin-top:56px!important}
+  table{font-size:12px}
+  .btn{padding:.5rem .65rem;font-size:.78rem;border-radius:.65rem}
+  .glass-card{border-radius:1rem}
+  .mobile-hide{display:none!important}
+  #notifMenu{right:-58px;width:18rem}
+}
+
+@media(min-width:769px){
+  #sidebar{transform:translateX(0)}
+  #mainContent{margin-left:16rem}
+  body.desktop-menu-hidden #sidebar{transform:translateX(-100%)}
+  body.desktop-menu-hidden #mainContent{margin-left:0!important}
+}
+</style>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+<div class="min-h-screen">
+
+<div id="mobileBackdrop" class="mobile-backdrop fixed inset-0 bg-black/40 z-50" onclick="closeSidebar()"></div>
+
+<header class="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 shadow-lg px-4 py-2 flex justify-between items-center text-white">
+  <div class="flex items-center gap-2 min-w-0">
+    <img src="{{ url_for('static', filename='img/logo-title.png') }}" class="w-8 h-8 object-contain drop-shadow" alt="Logo">
+    <p class="brand-title text-[10px] text-blue-100">Sistem Iuran, SKP & Renja</p>
+    <button onclick="toggleSidebar(event)" class="p-2 rounded-lg hover:bg-white/20 transition shrink-0">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <div class="relative">
+      <button onclick="toggleNotif()" class="relative p-2 rounded-lg hover:bg-white/20">
+        <i class="fa-solid fa-bell"></i>
+        {% if notif.belum_lunas %}
+        <span class="absolute -top-1 -right-3 bg-red-500 text-white text-[10px] rounded-full px-1">{{ notif.belum_lunas }}</span>
+        {% endif %}
+        {% if notif.kegiatan %}
+        <span class="absolute -bottom-1 -right-3 bg-blue-500 text-white text-[10px] rounded-full px-1">{{ notif.kegiatan }}</span>
+        {% endif %}
+      </button>
+
+      <div id="notifMenu" class="hidden absolute right-0 mt-2 w-72 bg-white border rounded-xl shadow-xl text-sm text-slate-700 overflow-hidden">
+        <div class="px-4 py-3 bg-slate-50 font-bold">Notifikasi</div>
+
+        {% if notif.belum_lunas %}
+        <a href="{% if session.role in ['anggota','user'] %}/iuran{% else %}/iuran?status=belum{% endif %}"
+           class="block px-4 py-3 hover:bg-red-50 text-red-700">
+          <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+          {% if session.role in ['anggota','user'] %}
+            {{ notif.belum_lunas }} tagihan belum lunas
+          {% else %}
+            {{ notif.belum_lunas }} tagihan / {{ notif.anggota_belum_bayar }} anggota belum lunas
+          {% endif %}
+        </a>
+        {% endif %}
+
+        {% if notif.kegiatan %}
+        <a href="/rencana_kerja" class="block px-4 py-3 hover:bg-blue-50 text-blue-700">
+          <i class="fa-solid fa-calendar-check mr-2"></i>{{ notif.kegiatan }} kegiatan belum selesai
+        </a>
+        {% endif %}
+
+        {% if not notif.belum_lunas and not notif.kegiatan %}
+        <div class="px-4 py-3 text-slate-500">Tidak ada notifikasi.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <button onclick="aktifkanAlarmKegiatan()" class="p-2 rounded-lg hover:bg-white/20 transition">
+      <i class="fa-solid fa-volume-high"></i>
+    </button>
+
+    <div class="relative">
+      <button onclick="toggleUserMenu()" class="flex items-center gap-2 hover:bg-white/20 px-2 py-1 rounded-lg transition">
+        {% if session.foto %}
+        <img src="/static/uploads/{{ session.foto }}" class="w-9 h-9 rounded-full object-cover border border-white">
+        {% else %}
+        <div class="w-9 h-9 rounded-full bg-white/30 flex items-center justify-center">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        {% endif %}
+
+        <div class="text-xs block text-left max-w-[110px] sm:max-w-none">
+          <div class="font-semibold truncate">{{ session.user }}</div>
+          <div class="text-white/80 text-[10px] truncate">NIP. {{ session.nip }}</div>
+        </div>
+      </button>
+
+      <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-xl text-sm text-slate-700">
+        <a href="{{ url_for('edit_profil') }}" class="block px-4 py-2 hover:bg-slate-100">
+          <i class="fa-solid fa-user-pen mr-2"></i>Edit Profil
+        </a>
+        <a href="/logout" class="block px-4 py-2 text-red-600 hover:bg-slate-100">
+          <i class="fa-solid fa-right-from-bracket mr-2"></i>Logout
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<aside id="sidebar" class="fixed top-14 left-0 w-64 h-[calc(100%-56px)] z-40 bg-white border-r transform transition duration-300 flex flex-col shadow-xl">
+  <div class="p-5 border-b flex items-center gap-3">
+    <img src="{{ url_for('static', filename='img/logo-title.png') }}" class="w-10 h-10 object-contain drop-shadow">
+    <h1 class="text-xl font-bold text-blue-700">IPeKB</h1>
+  </div>
+
+  <nav class="flex-1 p-4 space-y-2 text-sm" onclick="if(window.innerWidth<=768 && event.target.closest('a')) closeSidebar()">
+    <a href="/dashboard" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+      <i class="fa-solid fa-chart-line w-5"></i>Dashboard
+    </a>
+
+    <a href="/iuran" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+      <i class="fa-solid fa-wallet w-5"></i>Iuran
+      {% if notif.belum_lunas %}
+      <span class="ml-auto bg-red-100 text-red-700 text-xs px-2 rounded-full">{{ notif.belum_lunas }}</span>
+      {% endif %}
+    </a>
+
+    {% if session.role == 'bendahara' %}
+    <a href="/pengeluaran?all=1" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+      <i class="fa-solid fa-money-bill-transfer w-5"></i>Pengeluaran Kas
+    </a>
+    {% endif %}
+
+    {% if session.role == 'bendahara' %}
+    <a href="/pembayaran" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+      <i class="fa-solid fa-credit-card w-5"></i>Pembayaran
+    </a>
+
+    <a href="/pengeluaran" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+      <i class="fa-solid fa-money-bill-transfer w-5"></i>Pengeluaran
+    </a>
+    {% endif %}
+
+    <div>
+      <button type="button" onclick="toggleMenuGroup('menuDokumen')" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+        <i class="fa-solid fa-folder-open w-5"></i>Dokumen & Laporan
+        <i class="fa-solid fa-chevron-down ml-auto text-xs"></i>
+      </button>
+
+      <div id="menuDokumen" class="ml-7 mt-1 space-y-1 hidden">
+        {% if session.role in ['admin','anggota','user'] %}
+        <a href="/skp" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 hover:text-blue-700">
+          <i class="fa-solid fa-file-signature w-5"></i>SKP
+        </a>
+        {% if session.role in ['admin','anggota','user'] %}
+        <a href="/kegiatan_pkb" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 hover:text-blue-700">
+          <i class="fa-solid fa-table-list w-5"></i>Kegiatan Evisum
+        </a>
+        {% endif %}
+        <a href="/rencana_kerja" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 hover:text-blue-700">
+          <i class="fa-solid fa-calendar-days w-5"></i>Rencana Kerja
+        </a>
+        {% endif %}
+
+        {% if session.role in ['anggota','user'] %}
+        <a href="/laporan_kegiatan" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 hover:text-blue-700">
+          <i class="fa-solid fa-clipboard-check w-5"></i>Laporan Kegiatan
+        </a>
+        {% else %}
+        <a href="/laporan" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 hover:text-blue-700">
+          <i class="fa-solid fa-file-pdf w-5"></i>Laporan PDF
+        </a>
+        {% endif %}
+      </div>
+    </div>
+     {% if session.role in ['user', 'anggota'] %}
+      <a href="/arsip_digital"
+        class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 hover:text-blue-700">
+        <i class="fa-solid fa-box-archive w-5"></i>Arsip Digital
+      </a>
+    {% endif %}
+    {% if session.role == 'admin' %}
+    <a href="/users" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 hover:text-blue-700">
+      <i class="fa-solid fa-users-gear w-5"></i>Manajemen Anggota
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="p-3 border-t text-center text-xs italic text-slate-500">
+    <span class="font-semibold text-slate-700">Copyright Helmi Ramdan</span> © 2026 IPKB
+  </div>
+</aside>
+
+<div id="mainContent" class="flex-1 flex flex-col ml-64 transition-all duration-300">
+  <main class="p-4 md:p-6 mt-16">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+</div>
+
+<nav class="android-bottom fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-2xl justify-around py-2 text-xs text-slate-600">
+  <a href="/dashboard" class="flex flex-col items-center gap-1"><i class="fa-solid fa-house text-lg"></i><span>Home</span></a>
+  <a href="/iuran" class="flex flex-col items-center gap-1"><i class="fa-solid fa-wallet text-lg"></i><span>Iuran</span></a>
+  {% if session.role == 'bendahara' %}
+  <a href="/pengeluaran" class="flex flex-col items-center gap-1"><i class="fa-solid fa-money-bill-transfer text-lg"></i><span>Keluar</span></a>
+  {% endif %}
+  {% if session.role in ['admin','anggota','user'] %}
+  <a href="/rencana_kerja" class="flex flex-col items-center gap-1"><i class="fa-solid fa-calendar-days text-lg"></i><span>Renja</span></a>
+  {% endif %}
+  {% if session.role in ['anggota','user'] %}
+  <a href="/laporan_kegiatan" class="flex flex-col items-center gap-1"><i class="fa-solid fa-clipboard-check text-lg"></i><span>Kegiatan</span></a>
+  {% else %}
+  <a href="/laporan" class="flex flex-col items-center gap-1"><i class="fa-solid fa-file-pdf text-lg"></i><span>Laporan</span></a>
+  {% endif %}
+</nav>
+
+<script>
+function toggleSidebar(event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
+  if(window.innerWidth <= 768){
+    document.body.classList.toggle('mobile-open');
+    return false;
+  }
+  document.body.classList.toggle('desktop-menu-hidden');
+  return false;
+}
+
+function closeSidebar(){
+  document.body.classList.remove('mobile-open');
+}
+
+document.addEventListener('click', function(e){
+  if(window.innerWidth <= 768 && document.body.classList.contains('mobile-open')){
+    const sidebar = document.getElementById('sidebar');
+    const isToggle = e.target.closest('[onclick^="toggleSidebar"]');
+    if(sidebar && !sidebar.contains(e.target) && !isToggle){
+      closeSidebar();
+    }
+  }
+
+  const card = e.target.closest('[data-card-url]');
+  if(card){
+    e.preventDefault();
+    window.location.href = card.dataset.cardUrl;
+  }
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closeSidebar();
+});
+
+function toggleUserMenu(){
+  document.getElementById('userMenu').classList.toggle('hidden');
+  document.getElementById('notifMenu').classList.add('hidden');
+}
+
+function toggleNotif(){
+  document.getElementById('notifMenu').classList.toggle('hidden');
+  document.getElementById('userMenu').classList.add('hidden');
+}
+
+function toggleMenuGroup(id){
+  document.getElementById(id).classList.toggle('hidden');
+}
+
+window.addEventListener('click', function(e){
+  if(!e.target.closest('.relative')){
+    document.getElementById('userMenu').classList.add('hidden');
+    document.getElementById('notifMenu').classList.add('hidden');
+  }
+});
+
+{% if request.args.get('msg') %}
+Swal.fire({
+  toast:true,
+  position:'top-end',
+  icon:'info',
+  title:{{ request.args.get('msg')|tojson }},
+  showConfirmButton:false,
+  timer:2800,
+  timerProgressBar:true
+});
+{% endif %}
+
+function confirmDelete(url, text='Data akan dihapus permanen.'){
+  Swal.fire({
+    title:'Yakin hapus?',
+    text:text,
+    icon:'warning',
+    showCancelButton:true,
+    confirmButtonText:'Ya, hapus',
+    cancelButtonText:'Batal',
+    confirmButtonColor:'#dc2626'
+  }).then((r)=>{
+    if(r.isConfirmed) window.location=url;
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(()=>{}));
+}
+
+let alarmKegiatanAktif = localStorage.getItem('alarmKegiatanAktif') === '1';
+let alarmRepeatTimer = null;
+let alarmCurrentItem = null;
+
+function getAlarmAudio(){
+  let audio = document.getElementById('alarmAudioKegiatan');
+  if(!audio){
+    audio = document.createElement('audio');
+    audio.id = 'alarmAudioKegiatan';
+    audio.src = '/static/audio/alarm.wav';
+    audio.preload = 'auto';
+    audio.loop = false;
+    document.body.appendChild(audio);
+  }
+  return audio;
+}
+
+async function playAlarmOnce(){
+  if(!alarmKegiatanAktif) return;
+  try{
+    const audio = getAlarmAudio();
+    audio.pause();
+    audio.currentTime = 0;
+    await audio.play();
+  }catch(e){}
+}
+
+function stopAlarmBerulang(){
+  if(alarmRepeatTimer){
+    clearInterval(alarmRepeatTimer);
+    alarmRepeatTimer = null;
+  }
+  alarmCurrentItem = null;
+  try{
+    const audio = getAlarmAudio();
+    audio.pause();
+    audio.currentTime = 0;
+  }catch(e){}
+}
+
+function startAlarmBerulang(item){
+  if(!alarmKegiatanAktif) return;
+  alarmCurrentItem = item;
+  playAlarmOnce();
+
+  if(!alarmRepeatTimer){
+    alarmRepeatTimer = setInterval(()=>{
+      if(alarmCurrentItem && alarmKegiatanAktif){
+        playAlarmOnce();
+      }
+    }, 20000);
+  }
+}
+
+async function aktifkanAlarmKegiatan(){
+  alarmKegiatanAktif = true;
+  localStorage.setItem('alarmKegiatanAktif','1');
+
+  if('Notification' in window && Notification.permission !== 'granted'){
+    try{ await Notification.requestPermission(); }catch(e){}
+  }
+
+  try{
+    const audio = getAlarmAudio();
+    audio.currentTime = 0;
+    await audio.play();
+    setTimeout(()=>{ audio.pause(); audio.currentTime=0; }, 700);
+  }catch(e){}
+
+  Swal.fire({
+    toast:true,
+    position:'top-end',
+    icon:'success',
+    title:'Alarm kegiatan aktif',
+    showConfirmButton:false,
+    timer:3000
+  });
+
+  cekNotifikasiPWA();
+}
+
+async function cekNotifikasiPWA(){
+  try{
+    const res = await fetch('/api/notifikasi', {cache:'no-store'});
+    const data = await res.json();
+    const items = data.items || [];
+    const kegiatanItems = items.filter(item => item.type === 'kegiatan');
+
+    if(kegiatanItems.length > 0){
+      const item = kegiatanItems[0];
+      startAlarmBerulang(item);
+    }else{
+      stopAlarmBerulang();
+    }
+  }catch(e){}
+}
+
+setInterval(cekNotifikasiPWA, 15000);
+window.addEventListener('load', ()=>{
+  getAlarmAudio();
+  cekNotifikasiPWA();
+});
+</script>
+</body>
+</html>

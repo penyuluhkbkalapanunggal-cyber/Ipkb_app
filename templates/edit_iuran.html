@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+
+<h2 class="text-xl font-bold mb-4">Edit Iuran</h2>
+
+<form method="POST" class="space-y-3">
+
+    <!-- NAMA -->
+    <div>
+        <label>Nama</label>
+        <input type="text" value="{{ data[1] }}" readonly
+               class="w-full border p-2 rounded bg-gray-100">
+    </div>
+
+    <!-- BULAN -->
+    <div>
+        <label>Bulan</label>
+        <input type="text" value="{{ data[2] }}" readonly
+               class="w-full border p-2 rounded bg-gray-100">
+    </div>
+
+    <!-- TAHUN -->
+    <div>
+        <label>Tahun</label>
+        <input type="text" value="{{ data[3] }}" readonly
+               class="w-full border p-2 rounded bg-gray-100">
+    </div>
+
+    <!-- JUMLAH -->
+    <div>
+        <label>Tagihan</label>
+        <input type="number" name="jumlah" value="{{ data[4] }}"
+               class="w-full border p-2 rounded">
+    </div>
+
+    <button class="bg-blue-600 text-white px-4 py-2 rounded">
+        Simpan
+    </button>
+
+</form>
+</div>
+
+{% endblock %}

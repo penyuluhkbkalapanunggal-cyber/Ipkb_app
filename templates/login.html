@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+        }
+
+        /* KIRI GAMBAR */
+        .left {
+            width: 65%;
+            background: url('/static/gedung.jpg') no-repeat center;
+            background-size: cover;
+        }
+
+        /* KANAN FORM + BG */
+        .right {
+            width: 35%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-left: 2px solid #2e6da4;
+            overflow: hidden;
+        }
+
+        /* Background kanan */
+        .right::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url('/static/bg-kanan.jpg') no-repeat center;
+            background-size: cover;
+            filter: blur(2px);
+            z-index: 0;
+        }
+
+        /* Overlay putih */
+        .right::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.92);
+            z-index: 1;
+        }
+
+        .login-box {
+            position: relative;
+            z-index: 2;
+            width: 80%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        /* LOGO */
+        .logo img {
+            width: 180px;
+            margin-bottom: 50px;
+        }
+
+        .logo p {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* INPUT */
+        label {
+            font-size: 12px;
+            float: left;
+            margin-bottom: 3px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bfc7d1;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: #eef2f7;
+        }
+
+        /* CHECKBOX */
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .remember input {
+            width: auto;
+            margin: 0;
+        }
+
+        /* BUTTON */
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #2e6da4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #204d74;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .left {
+                display: none;
+            }
+
+            .right {
+                width: 100%;
+                border-left: none;
+                padding-top: 40px;
+            }
+
+            .logo img {
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="left"></div>
+
+<div class="right">
+    <div class="login-box">
+
+        <div class="logo">
+            <img src="/static/logo.png">
+            <p><b>RENJA</b> - Rencana Kerja Petugas Lapangan</p>
+        </div>
+
+        <form method="POST">
+            <label>ID Pengguna *</label>
+            <input type="text" name="nip" required>
+
+            <label>Kata Sandi *</label>
+            <input type="password" name="password" required>
+
+            <div class="remember">
+                <input type="checkbox" id="ingat">
+                <label for="ingat">Ingatkan Saya</label>
+            </div>
+
+            <button type="submit">MASUK</button>
+        </form>
+
+        <div class="footer">
+            <p>IPKB Kabupaten Cianjur</p>
+            <p>Copyright © Helmi Ramdan 2026</p>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
